@@ -1,0 +1,25 @@
+# Task: Add item to Sysco cart
+id: sysco-add-to-cart
+name: Sysco Add to Cart
+description: |
+  Starting from the logged-in dashboard, search for "spinach case",
+  find a matching product, set quantity to 1, and add it to cart.
+  Verify the item appears in the cart.
+
+start_url: https://shop.sysco.com/app/discover
+requires_auth: true
+max_steps: 30
+timeout_seconds: 180
+
+parameters:
+  search_term: spinach case
+  quantity: 1
+
+success_criteria:
+  - cart_not_empty: true
+  - cart_contains: spinach
+
+tags:
+  - cart
+  - sysco
+  - core-flow

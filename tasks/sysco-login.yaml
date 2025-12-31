@@ -1,0 +1,21 @@
+# Task: Log into Sysco website
+id: sysco-login
+name: Sysco Login
+description: |
+  Navigate to shop.sysco.com and log in with the provided credentials.
+  After successful login, verify that the dashboard is visible with
+  a welcome message.
+
+start_url: https://shop.sysco.com
+requires_auth: true
+max_steps: 20
+timeout_seconds: 120
+
+success_criteria:
+  - url_contains: /app/discover
+  - page_contains: Welcome
+
+tags:
+  - auth
+  - sysco
+  - smoke-test
