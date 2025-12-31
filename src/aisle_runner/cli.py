@@ -1,4 +1,4 @@
-"""CLI for PrepAI Eval."""
+"""CLI for Aisle Runner Bench."""
 
 import asyncio
 from pathlib import Path
@@ -8,7 +8,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-app = typer.Typer(help="PrepAI Eval - Browser automation benchmarks")
+app = typer.Typer(help="Aisle Runner Bench - Browser automation benchmarks")
 console = Console()
 
 

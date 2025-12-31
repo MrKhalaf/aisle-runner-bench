@@ -1,5 +1,5 @@
 [project]
-name = "prepai-eval"
+name = "aisle-runner-bench"
 version = "0.1.0"
 description = "Benchmark suite for browser automation evaluation"
 requires-python = ">=3.11"
@@ -26,14 +26,14 @@ dspy = [
 ]
 
 [project.scripts]
-prepai-eval = "prepai_eval.cli:app"
+aisle-runner-bench = "aisle_runner.cli:app"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/prepai_eval"]
+packages = ["src/aisle_runner"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

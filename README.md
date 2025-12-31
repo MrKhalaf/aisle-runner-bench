@@ -1,4 +1,4 @@
-# PrepAI Eval
+# Aisle Runner Bench
 
 Benchmark suite for evaluating browser automation approaches for e-commerce cart building tasks.
 
@@ -13,8 +13,8 @@ Systematically compare:
 
 ```bash
 pip install -e .
-prepai-eval run --task sysco-login --model claude-opus-4-5
-prepai-eval compare --results results/
+aisle-runner-bench run --task sysco-login --model claude-opus-4-5
+aisle-runner-bench compare --results results/
 ```
 
 ## Metrics
