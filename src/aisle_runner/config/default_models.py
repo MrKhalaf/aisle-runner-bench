@@ -8,7 +8,6 @@ NOTE: API keys must be set as environment variables:
 
 from ..models import ModelConfig
 
-# Current production models with actual pricing (as of Jan 2025)
 DEFAULT_MODELS: list[ModelConfig] = [
     # Anthropic Models
     ModelConfig(
@@ -30,9 +29,9 @@ DEFAULT_MODELS: list[ModelConfig] = [
         max_tokens=8192,
     ),
     ModelConfig(
-        id="claude-haiku-35",
+        id="claude-haiku-4-5",
         provider="anthropic",
-        model_id="claude-haiku-3-5-20241022",
+        model_id="claude-haiku-4-5-20251101",
         cost_per_1k_input=0.001,
         cost_per_1k_output=0.005,
         supports_vision=True,
@@ -40,20 +39,20 @@ DEFAULT_MODELS: list[ModelConfig] = [
     ),
     # OpenAI Models
     ModelConfig(
+        id="gpt-5",
+        provider="openai",
+        model_id="gpt-5",
+        cost_per_1k_input=0.010,
+        cost_per_1k_output=0.030,
+        supports_vision=True,
+        max_tokens=8192,
+    ),
+    ModelConfig(
         id="gpt-4o",
         provider="openai",
         model_id="gpt-4o",
         cost_per_1k_input=0.005,
         cost_per_1k_output=0.015,
-        supports_vision=True,
-        max_tokens=4096,
-    ),
-    ModelConfig(
-        id="gpt-4o-mini",
-        provider="openai",
-        model_id="gpt-4o-mini",
-        cost_per_1k_input=0.00015,
-        cost_per_1k_output=0.0006,
         supports_vision=True,
         max_tokens=4096,
     ),
@@ -68,6 +67,15 @@ DEFAULT_MODELS: list[ModelConfig] = [
     ),
     # Google Models
     ModelConfig(
+        id="gemini-3-flash",
+        provider="google",
+        model_id="gemini-3.0-flash",
+        cost_per_1k_input=0.0001,
+        cost_per_1k_output=0.0004,
+        supports_vision=True,
+        max_tokens=8192,
+    ),
+    ModelConfig(
         id="gemini-2-flash",
         provider="google",
         model_id="gemini-2.0-flash",
@@ -77,18 +85,9 @@ DEFAULT_MODELS: list[ModelConfig] = [
         max_tokens=8192,
     ),
     ModelConfig(
-        id="gemini-2-flash-thinking",
+        id="gemini-2-pro",
         provider="google",
-        model_id="gemini-2.0-flash-thinking-exp",
-        cost_per_1k_input=0.0001,
-        cost_per_1k_output=0.0004,
-        supports_vision=True,
-        max_tokens=8192,
-    ),
-    ModelConfig(
-        id="gemini-15-pro",
-        provider="google",
-        model_id="gemini-1.5-pro",
+        model_id="gemini-2.0-pro",
         cost_per_1k_input=0.00125,
         cost_per_1k_output=0.005,
         supports_vision=True,
@@ -104,13 +103,13 @@ GOOGLE_MODELS = [m for m in DEFAULT_MODELS if m.provider == "google"]
 # Budget-friendly subset for quick testing
 BUDGET_MODELS = [
     m for m in DEFAULT_MODELS
-    if m.id in ("claude-haiku-35", "gpt-4o-mini", "gemini-2-flash")
+    if m.id in ("claude-haiku-4-5", "gpt-4o", "gemini-3-flash")
 ]
 
 # Premium models for best accuracy
 PREMIUM_MODELS = [
     m for m in DEFAULT_MODELS
-    if m.id in ("claude-opus-4-5", "o1", "gemini-15-pro")
+    if m.id in ("claude-opus-4-5", "gpt-5", "gemini-2-pro")
 ]
 
 
