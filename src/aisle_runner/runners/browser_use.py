@@ -3,14 +3,41 @@
 import time
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from browser_use import Agent, Browser, BrowserConfig
 from langchain_anthropic import ChatAnthropic
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
 from ..models import RunConfig, RunResult, StepTrace, TaskStatus
 from .base import BaseRunner
+
+
+class TokenTracker(BaseCallbackHandler):
+    """Callback handler to track token usage."""
+
+    def __init__(self):
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.step_tokens: list[dict[str, int]] = []
+
+    def on_llm_end(self, response: Any, **kwargs: Any) -> None:
+        """Track tokens after LLM call completes."""
+        if hasattr(response, "llm_output") and response.llm_output:
+            usage = response.llm_output.get("token_usage", {})
+            input_t = usage.get("prompt_tokens", 0)
+            output_t = usage.get("completion_tokens", 0)
+            self.input_tokens += input_t
+            self.output_tokens += output_t
+            self.step_tokens.append({"input": input_t, "output": output_t})
+
+    def reset(self):
+        """Reset token counts."""
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.step_tokens = []
 
 
 class BrowserUseRunner(BaseRunner):
@@ -19,20 +46,30 @@ class BrowserUseRunner(BaseRunner):
     def __init__(self):
         super().__init__()
         self.browser: Optional[Browser] = None
+        self.token_tracker = TokenTracker()
 
     def _create_llm(self, config: RunConfig):
         """Create the appropriate LLM based on provider."""
         model_config = config.model
+        callbacks = [self.token_tracker]
 
         if model_config.provider == "anthropic":
             return ChatAnthropic(
                 model=model_config.model_id,
                 max_tokens=model_config.max_tokens,
+                callbacks=callbacks,
             )
         elif model_config.provider == "openai":
             return ChatOpenAI(
                 model=model_config.model_id,
                 max_tokens=model_config.max_tokens,
+                callbacks=callbacks,
+            )
+        elif model_config.provider == "google":
+            return ChatGoogleGenerativeAI(
+                model=model_config.model_id,
+                max_output_tokens=model_config.max_tokens,
+                callbacks=callbacks,
             )
         else:
             raise ValueError(f"Unsupported provider: {model_config.provider}")
@@ -42,8 +79,9 @@ class BrowserUseRunner(BaseRunner):
         run_id = str(uuid.uuid4())[:8]
         start_time = time.time()
         traces = []
-        total_input_tokens = 0
-        total_output_tokens = 0
+
+        # Reset token tracker for this run
+        self.token_tracker.reset()
 
         try:
             # Create browser
@@ -70,6 +108,13 @@ class BrowserUseRunner(BaseRunner):
             # Extract metrics from history
             if history:
                 for i, step in enumerate(history.history):
+                    # Get token counts for this step if available
+                    step_tokens = (
+                        self.token_tracker.step_tokens[i]
+                        if i < len(self.token_tracker.step_tokens)
+                        else {"input": 0, "output": 0}
+                    )
+
                     trace = StepTrace(
                         step_number=i + 1,
                         timestamp=datetime.now(),
@@ -77,8 +122,8 @@ class BrowserUseRunner(BaseRunner):
                         page_url=step.state.url if step.state else "",
                         action=step.model_output.model_dump() if step.model_output else {},
                         reasoning=str(step.model_output) if step.model_output else "",
-                        input_tokens=0,  # TODO: Extract from langchain callback
-                        output_tokens=0,
+                        input_tokens=step_tokens["input"],
+                        output_tokens=step_tokens["output"],
                         duration_seconds=0,
                         success=True,
                     )
@@ -93,6 +138,8 @@ class BrowserUseRunner(BaseRunner):
                 status = TaskStatus.FAILED
 
             total_time = time.time() - start_time
+            total_input = self.token_tracker.input_tokens
+            total_output = self.token_tracker.output_tokens
 
             return RunResult(
                 run_id=run_id,
@@ -103,18 +150,17 @@ class BrowserUseRunner(BaseRunner):
                 success=success,
                 steps=len(traces),
                 total_time_seconds=total_time,
-                input_tokens=total_input_tokens,
-                output_tokens=total_output_tokens,
-                cost_usd=self._calculate_cost(
-                    total_input_tokens,
-                    total_output_tokens,
-                    config.model
-                ),
+                input_tokens=total_input,
+                output_tokens=total_output,
+                cost_usd=self._calculate_cost(total_input, total_output, config.model),
                 traces=traces,
             )
 
         except Exception as e:
             total_time = time.time() - start_time
+            total_input = self.token_tracker.input_tokens
+            total_output = self.token_tracker.output_tokens
+
             return RunResult(
                 run_id=run_id,
                 task_id=config.task.id,
@@ -124,9 +170,9 @@ class BrowserUseRunner(BaseRunner):
                 success=False,
                 steps=len(traces),
                 total_time_seconds=total_time,
-                input_tokens=total_input_tokens,
-                output_tokens=total_output_tokens,
-                cost_usd=0,
+                input_tokens=total_input,
+                output_tokens=total_output,
+                cost_usd=self._calculate_cost(total_input, total_output, config.model),
                 error=str(e),
                 traces=traces,
             )
