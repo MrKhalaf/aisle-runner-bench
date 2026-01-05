@@ -42,8 +42,8 @@ DEFAULT_MODELS: list[ModelConfig] = [
         id="gpt-5",
         provider="openai",
         model_id="gpt-5",
-        cost_per_1k_input=0.010,
-        cost_per_1k_output=0.030,
+        cost_per_1k_input=0.00125,  # $1.25/1M tokens
+        cost_per_1k_output=0.010,   # $10/1M tokens
         supports_vision=True,
         max_tokens=8192,
     ),
@@ -70,8 +70,8 @@ DEFAULT_MODELS: list[ModelConfig] = [
         id="gemini-3-flash",
         provider="google",
         model_id="gemini-3.0-flash",
-        cost_per_1k_input=0.0001,
-        cost_per_1k_output=0.0004,
+        cost_per_1k_input=0.0005,   # $0.50/1M tokens
+        cost_per_1k_output=0.003,   # $3/1M tokens
         supports_vision=True,
         max_tokens=8192,
     ),
