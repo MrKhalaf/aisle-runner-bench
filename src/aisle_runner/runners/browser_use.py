@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Optional
 
-from browser_use import Agent, Browser, BrowserConfig
+from browser_use import Agent, Browser
 from langchain_anthropic import ChatAnthropic
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -84,9 +84,8 @@ class BrowserUseRunner(BaseRunner):
         self.token_tracker.reset()
 
         try:
-            # Create browser
-            browser_config = BrowserConfig(headless=config.headless)
-            self.browser = Browser(config=browser_config)
+            # Create browser with headless config
+            self.browser = Browser(headless=config.headless)
 
             # Create LLM
             llm = self._create_llm(config)
